@@ -1,4 +1,5 @@
 #!/usr/bin/php
 <?php
 
-require_once (realpath(dirname($argv[0])) . '/ec2munin.php');
+$rundir = realpath(dirname($argv[0]));
+require_once ($rundir . '/ec2munin.php');

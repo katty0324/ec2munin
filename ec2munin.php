@@ -1,7 +1,7 @@
 <?php
 
-require_once ('./aws-sdk-for-php/sdk.class.php');
-require_once ('./config.inc.php');
+require_once ($rundir . '/aws-sdk-for-php/sdk.class.php');
+require_once ($rundir . '/config.inc.php');
 
 $ec2 = new AmazonEC2();
 
