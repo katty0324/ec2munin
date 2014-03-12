@@ -6,40 +6,38 @@ class Ec2munin {
 
 	public static function start() {
 
-		$config = '';
-		foreach (Ec2muninConfig::get_accounts() as $project => $config)
-			$config .= self::create_configs($project, $config);
-echo $config;
+		$configs = array();
+		foreach (Ec2muninConfig::get_accounts() as $project => $option)
+			$configs += self::create_configs($project, $option);
+
+		$config = implode("\n\n", $configs);
 		file_put_contents(Ec2muninConfig::get_config_path(), $config);
 
 	}
 
-	private static function create_configs($project, $config) {
+	private static function create_configs($project, $option) {
 
-		$ec2 = new AmazonEC2($config);
+		$ec2 = new AmazonEC2($option);
 
-		// get instance list and create config
-		$config = '';
+		$configs = array();
 		foreach (Ec2muninConfig::get_regions() as $region) {
 
-			// describe instances in the region.
 			$ec2->set_region($region);
 			$instances = $ec2->describe_instances();
 			if (!$instances->isOK())
 				continue;
 
-			// create config
 			foreach ($instances->body->reservationSet->children() as $reservationItem) {
 				foreach ($reservationItem->instancesSet->children() as $instance) {
 					$variables = self::extractVariables($instance);
 					$variables['projectName']=$project;
-					$config .= self::render(EC2muninConfig::get_template(), $variables) . "\n\n";
+					$configs[] = self::render(EC2muninConfig::get_template(), $variables);
 				}
 			}
 
 		}
 
-		return $config;
+		return $configs;
 
 	}
 
