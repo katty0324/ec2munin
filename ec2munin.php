@@ -4,19 +4,27 @@ require_once (dirname(__FILE__) . '/aws-sdk-for-php/sdk.class.php');
 
 class Ec2munin {
 
-	private static $ec2;
-
 	public static function start() {
 
-		self::$ec2 = new AmazonEC2();
+		$config = '';
+		foreach (Ec2muninConfig::get_accounts() as $project => $config)
+			$config .= self::create_configs($project, $config);
+
+		file_put_contents(Ec2muninConfig::get_config_path(), $config);
+
+	}
+
+	private static function create_configs($project, $config) {
+
+		$ec2 = new AmazonEC2($config);
 
 		// get instance list and create config
-		$config = "{$config_begin_seperater}\n";
-		foreach ($regions as $region) {
+		$config = '';
+		foreach (Ec2muninConfig::get_regions() as $region) {
 
 			// describe instances in the region.
-			$this->ec2->set_region($region);
-			$instances = $this->ec2->describe_instances();
+			$ec2->set_region($region);
+			$instances = $ec2->describe_instances();
 			if (!$instances->isOK())
 				continue;
 
@@ -25,23 +33,15 @@ class Ec2munin {
 				foreach ($reservationItem->instancesSet->children() as $instanceItem) {
 					$group_name = $region;
 					$node_name = $instanceItem->dnsName;
-					$node_ip = $use_public_dns ? $instanceItem->dnsName : $instanceItem->privateIpAddress;
-					$config .= $this->create_munin_config($node_ip, $node_name, $group_name);
+					$node_ip = $instanceItem->dnsName;
+					$config .= self::create_munin_config($node_ip, $node_name, $group_name);
 					continue;
 				}
 			}
 
 		}
-		$config .= "{$config_end_seperater}";
 
-		// generate new config file
-		$pattern = "/{$config_begin_seperater}(.*){$config_end_seperater}/s";
-		$old_config = @file_get_contents($config_path);
-		$new_config = preg_replace($pattern, $config, $old_config);
-		if (!preg_match($pattern, $new_config))
-			$new_config = "{$old_config}\n{$config}";
-
-		file_put_contents($config_path, $new_config);
+		return $config;
 
 	}
 
