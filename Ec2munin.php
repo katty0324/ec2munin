@@ -29,8 +29,10 @@ class Ec2munin {
 
 			foreach ($instances->body->reservationSet->children() as $reservationItem) {
 				foreach ($reservationItem->instancesSet->children() as $instance) {
+					if ($instance->instanceState->name->to_string() != 'running')
+						continue;
 					$variables = self::extractVariables($instance);
-					$variables['projectName']=$project;
+					$variables['projectName'] = $project;
 					$configs[] = self::render(EC2muninConfig::get_template(), $variables);
 				}
 			}
@@ -66,7 +68,6 @@ class Ec2munin {
 		return $variables;
 
 	}
-
 
 	private function render($template, $variables) {
 
