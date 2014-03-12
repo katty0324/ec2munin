@@ -1,17 +1,14 @@
 <?php
 
 require_once (dirname(__FILE__) . '/aws-sdk-for-php/sdk.class.php');
-require_once (dirname(__FILE__) . '/config.inc.php');
 
 class Ec2munin {
 
-	private $ec2;
+	private static $ec2;
 
-	public function __construct() {
-		$this->ec2 = new AmazonEC2();
-	}
+	public static function start() {
 
-	public function start() {
+		self::$ec2 = new AmazonEC2();
 
 		// get instance list and create config
 		$config = "{$config_begin_seperater}\n";
@@ -48,7 +45,7 @@ class Ec2munin {
 
 	}
 
-	private function create_munin_config($node_ip, $node_name = null, $group_name = null) {
+	private static function create_munin_config($node_ip, $node_name = null, $group_name = null) {
 		if (!$node_ip)
 			return null;
 		if (!$node_name)

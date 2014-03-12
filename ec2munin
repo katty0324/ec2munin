@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-require_once (dirname(__FILE__) . '/ec2munin.php');
+require_once (dirname(__FILE__) . '/Ec2munin.php');
+require_once (dirname(__FILE__) . '/config.php');
 
-$ec2munin = new Ec2munin();
-$ec2munin->start();
+Ec2munin::start();
