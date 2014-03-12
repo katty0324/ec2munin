@@ -8,7 +8,7 @@ class Ec2munin {
 
 		$configs = array();
 		foreach (Ec2muninConfig::get_accounts() as $project => $option)
-			$configs += self::create_configs($project, $option);
+			$configs = array_merge($configs, self::create_configs($project, $option));
 
 		$config = implode("\n\n", $configs);
 		file_put_contents(Ec2muninConfig::get_config_path(), $config);
