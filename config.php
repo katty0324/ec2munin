@@ -19,3 +19,5 @@ Ec2muninConfig::set_accounts(array('project' => array(
 		'key' => 'key',
 		'secret' => 'secret-key',
 	), ));
+
+Ec2muninConfig::set_template("[\${projectName};\${tag.Name}]\n\taddress\t\${dnsName}\n\tuse_node_name\tyes");

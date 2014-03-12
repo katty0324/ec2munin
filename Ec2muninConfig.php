@@ -5,6 +5,7 @@ class Ec2muninConfig {
 	private static $config_path;
 	private static $regions;
 	private static $accounts;
+	private static $template;
 
 	public static function get_config_path() {
 		return self::$config_path;
@@ -28,6 +29,14 @@ class Ec2muninConfig {
 
 	public static function set_accounts($accounts) {
 		self::$accounts = $accounts;
+	}
+
+	public static function get_template() {
+		return self::$template;
+	}
+
+	public static function set_template($template) {
+		self::$template = $template;
 	}
 
 }

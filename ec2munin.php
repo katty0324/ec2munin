@@ -9,7 +9,7 @@ class Ec2munin {
 		$config = '';
 		foreach (Ec2muninConfig::get_accounts() as $project => $config)
 			$config .= self::create_configs($project, $config);
-
+echo $config;
 		file_put_contents(Ec2muninConfig::get_config_path(), $config);
 
 	}
@@ -30,12 +30,10 @@ class Ec2munin {
 
 			// create config
 			foreach ($instances->body->reservationSet->children() as $reservationItem) {
-				foreach ($reservationItem->instancesSet->children() as $instanceItem) {
-					$group_name = $region;
-					$node_name = $instanceItem->dnsName;
-					$node_ip = $instanceItem->dnsName;
-					$config .= self::create_munin_config($node_ip, $node_name, $group_name);
-					continue;
+				foreach ($reservationItem->instancesSet->children() as $instance) {
+					$variables = self::extractVariables($instance);
+					$variables['projectName']=$project;
+					$config .= self::render(EC2muninConfig::get_template(), $variables) . "\n\n";
 				}
 			}
 
@@ -45,14 +43,40 @@ class Ec2munin {
 
 	}
 
-	private static function create_munin_config($node_ip, $node_name = null, $group_name = null) {
-		if (!$node_ip)
-			return null;
-		if (!$node_name)
-			$node_name = $node_ip;
-		if (!$group_name)
-			$group_name = 'muninec2';
-		return "[{$group_name};{$node_name}]\n\taddress	{$node_ip}\n\tuse_node_name	yes\n\n";
+	private static function extractVariables($instance) {
+
+		$variables = array(
+			'instanceId' => $instance->instanceId->to_string(),
+			'imageId' => $instance->imageId->to_string(),
+			'instanceState' => $instance->instanceState->name->to_string(),
+			'privateDnsName' => $instance->privateDnsName->to_string(),
+			'dnsName' => $instance->dnsName->to_string(),
+			'keyName' => $instance->keyName->to_string(),
+			'instanceType' => $instance->instanceType->to_string(),
+			'launchTime' => $instance->launchTime->to_string(),
+			'availabilityZone' => $instance->placement->availabilityZone->to_string(),
+			'kernelId' => $instance->kernelId->to_string(),
+			'subnetId' => $instance->subnetId->to_string(),
+			'vpcId' => $instance->vpcId->to_string(),
+			'privateIpAddress' => $instance->privateIpAddress->to_string(),
+			'ipAddress' => $instance->ipAddress->to_string(),
+		);
+
+		foreach ($instance->tagSet->item as $tag)
+			$variables['tag.' . $tag->key->to_string()] = $tag->value->to_string();
+
+		return $variables;
+
+	}
+
+
+	private function render($template, $variables) {
+
+		foreach ($variables as $key => $value)
+			$template = str_replace('${' . $key . '}', $value, $template);
+
+		return $template;
+
 	}
 
 }
