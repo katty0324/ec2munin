@@ -1,6 +1,6 @@
 <?php
 
-require_once (dirname(__FILE__) . '/Ec2muninConfig.php');
+require_once (dirname(__FILE__) . '/src/Ec2muninConfig.php');
 
 Ec2muninConfig::set_config_path('/etc/munin/conf.d/ec2munin.conf');
 
